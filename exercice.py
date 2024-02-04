@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 from pathlib import Path
-import requests, datetime, time, streamlit as st, pandas as pd, plotly.express as px
+import requests, datetime, time, streamlit as st, pandas as pd, plotly.express as px, sqlite3
 
 
 
@@ -38,19 +38,26 @@ def file_check_add(file_name_path,value,time):
     
 
 if __name__ == "__main__":
-
-    
+    con = sqlite3.Connection('data-exercice.db')
+    cur = con.cursor()
+    query = f"INSERT INTO temp_stat VALUES(?,?)"
     count = 0
     while True:
         value_scrap = get_value_scrap(URL)
         value_time = get_time()
-        file_check_add('data_temp_exercice.txt',value_scrap,value_time)
+        # file_check_add('data_temp_exercice.txt',value_scrap,value_time)
+        cur.execute(query,(value_time,value_scrap,))
+        con.commit()
         st.write(count)
         count += 1
         time.sleep(2)
-        if count == 10:
+        if count == 4:
             break
-
-    df = pd.read_csv('data_temp_exercice.txt')
-    st.plotly_chart(px.line(x=df['date'],y=df['temperature'], labels={'x':"Date",'y':'Temperature'}))
+    all_resultat = cur.execute('SELECT * FROM temp_stat')
+    all_resultat = all_resultat.fetchall()
+    data_date = [row[0] for row in all_resultat]
+    data_temp = [row[1] for row in all_resultat]
+    st.plotly_chart(px.line(x=data_date,y=data_temp, labels={'x':"Date",'y':'Temperature'}))
+    # df = pd.read_csv('data_temp_exercice.txt')
+    # st.plotly_chart(px.line(x=df['date'],y=df['temperature'], labels={'x':"Date",'y':'Temperature'}))
     
