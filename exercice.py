@@ -1,10 +1,7 @@
 from bs4 import BeautifulSoup
 from pathlib import Path
-from io import StringIO
-import requests,datetime,time
-import streamlit as st
-import pandas as pd
-import plotly.express as px
+import requests, datetime, time, streamlit as st, pandas as pd, plotly.express as px
+
 
 
 

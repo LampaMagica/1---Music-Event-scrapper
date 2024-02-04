@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from pathlib import Path
 import smtplib,ssl,time,requests
-
+import sqlite3
 
 
 URL = "http://programmer100.pythonanywhere.com/tours/"
@@ -41,6 +41,13 @@ def email_sending(message,
         server.sendmail(sender_email,receiver_email,message_content)
     
 
+# def db_connection():
+#     con = sqlite3.connect('data.db')
+#     return con.cursor()
+    
+
+
+
 
 def event_storing(event_):
     event = event_
@@ -50,18 +57,37 @@ def event_storing(event_):
     
 
 def check_exist_event_file(event,file_data):
-
+    
     if event != "No upcoming tours":
-        if FILE_PATH.exists():
-            with open(file_data,'r') as file:
-                data = file.read()
-            if event not in data:
-                event_storing(event)
-                email_sending(event)
+        con = sqlite3.Connection('data.db')
+        cur = con.cursor()
+        event_value_split = event.split(',')
+        event_value_split = [item.strip() for item in event_value_split]
+        band = event_value_split[0]
+        city = event_value_split[1]
+        date = event_value_split[2]
 
-        else:
-            event_storing(event)
-            email_sending(event)
+        query = f"SELECT * FROM events WHERE band=? AND city=? AND date=?"
+
+        rst = cur.execute(query,(band,city,date,))
+
+        rst = rst.fetchone()
+        
+        if rst is None:
+            cur.execute('INSERT INTO events VALUES(?,?,?)',(band,city,date,))
+            con.commit()
+        cur.close()
+        con.close()
+        # if FILE_PATH.exists():
+        #     with open(file_data,'r') as file:
+        #         data = file.read()
+        #     if event not in data:
+        #         event_storing(event)
+                #email_sending(event)
+
+        # else:
+        #     event_storing(event)
+            #email_sending(event)
 
 
 
